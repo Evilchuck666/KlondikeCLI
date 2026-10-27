@@ -1,0 +1,180 @@
+name: Build console app
+
+# Disabled by default. Pushes and pull requests only build when the repository
+# variable KLONDIKECLI_CI is set to "true" (Settings → Secrets and variables →
+# Actions → Variables); otherwise the run shows up as skipped and uses no
+# minutes. "Run workflow" always works: leave the version empty to just build,
+# or give one (e.g. 1.0.0, matching project() in CMakeLists.txt) to also
+# publish a GitHub release with the four packages.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '**.cpp'
+      - '**.h'
+      - 'CMakeLists.txt'
+      - '.github/workflows/build.yml'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without the v (e.g. 1.0.0). Leave empty to only build.'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
+jobs:
+  console:
+    name: Build (${{ matrix.package }})
+    if: github.event_name == 'workflow_dispatch' || vars.KLONDIKECLI_CI == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            package: linux-x64
+            # Bundle the C++ runtime so the binary runs on other distributions.
+            cmake_args: -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -static-libgcc"
+          - os: windows-2025
+            package: windows-x64
+            # Static MSVC runtime: no Visual C++ Redistributable needed.
+            cmake_args: -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+          - os: macos-15-intel
+            package: macos-x64
+            cmake_args: -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+          - os: macos-15
+            package: macos-arm64
+            cmake_args: -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      PKG: KlondikeCLI-${{ matrix.package }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_args }}
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Stage
+        run: cmake --install build --config Release --prefix "dist/$PKG"
+
+      # Seed 42, one card at a time, open two cards, show the menu and quit.
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          exe="dist/$PKG/KlondikeCLI"
+          [[ "$RUNNER_OS" == "Windows" ]] && exe+=".exe"
+          output=$(printf '42\n1\n1\n1\n9\n0\n' | "$exe")
+          echo "$output"
+          grep -q "ABANDONED GAME" <<< "$output"
+
+      - name: Package
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            7z a -tzip "$PKG.zip" "$PKG" > /dev/null
+          else
+            tar -czf "$PKG.tar.gz" "$PKG"
+          fi
+          ls -l
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.PKG }}
+          path: |
+            dist/KlondikeCLI-*.tar.gz
+            dist/KlondikeCLI-*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: console
+    if: github.event_name == 'workflow_dispatch' && inputs.version != '' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: klondikecli-release
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ inputs.version }}
+      RELEASE_SHA: ${{ github.sha }}
+      PACKAGES: >-
+        KlondikeCLI-linux-x64.tar.gz
+        KlondikeCLI-windows-x64.zip
+        KlondikeCLI-macos-x64.tar.gz
+        KlondikeCLI-macos-arm64.tar.gz
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Validate version and check tag
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Use a version like 1.0.0, without the v."
+            exit 1
+          fi
+
+          code_version=$(sed -nE 's/^project\(KlondikeCLI VERSION ([0-9.]+).*/\1/p' CMakeLists.txt)
+          if [[ "$code_version" != "$VERSION" ]]; then
+            echo "::error::CMakeLists.txt says $code_version. Bump it to $VERSION first."
+            exit 1
+          fi
+
+          # An API failure must stop the release, so no "|| true" here.
+          gh api --paginate "repos/$GH_REPO/git/matching-refs/tags/" --jq '.[].ref' > tags.txt
+          if grep -Fxq "refs/tags/v$VERSION" tags.txt; then
+            echo "::error::Tag v$VERSION already exists. Use another version."
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: KlondikeCLI-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Check packages and generate checksums
+        working-directory: release-assets
+        run: |
+          set -euo pipefail
+          for file in $PACKAGES; do
+            if [[ ! -s "$file" ]]; then
+              echo "::error::Package $file is missing or empty."
+              exit 1
+            fi
+          done
+          sha256sum $PACKAGES > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create tag and publish release
+        working-directory: release-assets
+        run: |
+          set -euo pipefail
+          gh release create "v$VERSION" $PACKAGES SHA256SUMS.txt \
+            --target "$RELEASE_SHA" \
+            --title "KlondikeCLI v$VERSION" \
+            --generate-notes \
+            --latest

@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
-project(codi)
+cmake_minimum_required(VERSION 3.15)
+project(KlondikeCLI VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCE_FILES Deck.cpp
         Deck.h
@@ -17,4 +18,6 @@ set(SOURCE_FILES Deck.cpp
 
 include_directories(.)
 
-add_executable(codi ${SOURCE_FILES})
+add_executable(KlondikeCLI ${SOURCE_FILES})
+
+install(TARGETS KlondikeCLI RUNTIME DESTINATION .)
