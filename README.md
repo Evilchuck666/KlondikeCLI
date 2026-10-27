@@ -1,5 +1,6 @@
 # 🃏 KlondikeCLI
 
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20GNU%2FLinux%20%7C%20macOS-blue)
 ![C++](https://img.shields.io/badge/C%2B%2B-17-blue)
 ![CMake](https://img.shields.io/badge/CMake-%3E%3D3.15-blue)
 [![License](https://img.shields.io/badge/license-GPLv3-green)](LICENSE)
