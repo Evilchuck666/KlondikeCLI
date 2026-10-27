@@ -28,12 +28,14 @@ linked list.
 1. Download the package for your system from the
    [latest release](https://github.com/Evilchuck666/KlondikeCLI/releases/latest):
 
-   | System | Package |
+   | System | Download |
    | --- | --- |
-   | GNU/Linux (x64) | `KlondikeCLI-linux-x64.tar.gz` |
-   | Windows (x64) | `KlondikeCLI-windows-x64.zip` |
-   | macOS (Intel) | `KlondikeCLI-macos-x64.tar.gz` |
-   | macOS (Apple Silicon) | `KlondikeCLI-macos-arm64.tar.gz` |
+   | GNU/Linux (x64) | [**KlondikeCLI-linux-x64.tar.gz**](https://github.com/Evilchuck666/KlondikeCLI/releases/latest/download/KlondikeCLI-linux-x64.tar.gz) |
+   | Windows (x64) | [**KlondikeCLI-windows-x64.zip**](https://github.com/Evilchuck666/KlondikeCLI/releases/latest/download/KlondikeCLI-windows-x64.zip) |
+   | macOS (Intel) | [**KlondikeCLI-macos-x64.tar.gz**](https://github.com/Evilchuck666/KlondikeCLI/releases/latest/download/KlondikeCLI-macos-x64.tar.gz) |
+   | macOS (Apple Silicon) | [**KlondikeCLI-macos-arm64.tar.gz**](https://github.com/Evilchuck666/KlondikeCLI/releases/latest/download/KlondikeCLI-macos-arm64.tar.gz) |
+
+   Checksums: [SHA256SUMS.txt](https://github.com/Evilchuck666/KlondikeCLI/releases/latest/download/SHA256SUMS.txt).
 
 2. Extract it and run `KlondikeCLI` (`KlondikeCLI.exe` on Windows) from a
    terminal.
