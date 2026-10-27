@@ -1,5 +1,11 @@
 # 🃏 KlondikeCLI
 
+![C++](https://img.shields.io/badge/C%2B%2B-17-blue)
+![CMake](https://img.shields.io/badge/CMake-%3E%3D3.15-blue)
+[![License](https://img.shields.io/badge/license-GPLv3-green)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/Evilchuck666/KlondikeCLI?label=download&sort=semver)](https://github.com/Evilchuck666/KlondikeCLI/releases/latest)
+[![Build and tests](https://github.com/Evilchuck666/KlondikeCLI/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/Evilchuck666/KlondikeCLI/actions/workflows/build.yml)
+
 **Klondike solitaire in your terminal, written in plain C++17.**
 
 KlondikeCLI is the classic Klondike solitaire played from the console: seven
