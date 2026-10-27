@@ -1,5 +1,12 @@
 # 🃏 KlondikeCLI
 
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20GNU%2FLinux%20%7C%20macOS-blue)
+![C++](https://img.shields.io/badge/C%2B%2B-17-blue)
+![CMake](https://img.shields.io/badge/CMake-%3E%3D3.15-blue)
+[![License](https://img.shields.io/badge/license-GPLv3-green)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/Evilchuck666/KlondikeCLI?label=download&sort=semver)](https://github.com/Evilchuck666/KlondikeCLI/releases/latest)
+[![Build and tests](https://github.com/Evilchuck666/KlondikeCLI/actions/workflows/release.yml/badge.svg?branch=master)](https://github.com/Evilchuck666/KlondikeCLI/actions/workflows/release.yml)
+
 **Klondike solitaire in your terminal, written in plain C++17.**
 
 KlondikeCLI is the classic Klondike solitaire played from the console: seven
@@ -128,7 +135,7 @@ cmake --build build --config Release
 
 ## 📦 Releases
 
-Releases are built by GitHub Actions (`.github/workflows/build.yml`) on
+Releases are built by GitHub Actions (`.github/workflows/release.yml`) on
 GNU/Linux, Windows, macOS Intel and macOS Apple Silicon. Each build plays a
 short scripted game as a smoke test before it is packaged.
 
