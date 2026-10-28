@@ -5,7 +5,7 @@
 ![CMake](https://img.shields.io/badge/CMake-%3E%3D3.15-blue)
 [![License](https://img.shields.io/badge/license-GPLv3-green)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/Evilchuck666/KlondikeCLI?label=download&sort=semver)](https://github.com/Evilchuck666/KlondikeCLI/releases/latest)
-[![Build and tests](https://github.com/Evilchuck666/KlondikeCLI/actions/workflows/release.yml/badge.svg?branch=master)](https://github.com/Evilchuck666/KlondikeCLI/actions/workflows/release.yml)
+[![Build and tests](https://github.com/Evilchuck666/KlondikeCLI/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/Evilchuck666/KlondikeCLI/actions/workflows/release.yml)
 
 **Klondike solitaire in your terminal, written in plain C++17.**
 
@@ -144,7 +144,7 @@ short scripted game as a smoke test before it is packaged.
 - The same with a version such as `1.0.0` also creates the `v1.0.0` tag and a
   GitHub release with the four packages and a `SHA256SUMS.txt` file. The
   version must match `project(KlondikeCLI VERSION …)` in `CMakeLists.txt`,
-  and releases are only published from `master`.
+  and releases are only published from `main`.
 - Pushes and pull requests build automatically only when the repository
   variable `KLONDIKECLI_CI` is set to `true`.
 

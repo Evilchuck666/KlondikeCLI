@@ -9,7 +9,7 @@ name: Build console app
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - '**.cpp'
       - '**.h'
@@ -106,7 +106,7 @@ jobs:
   release:
     name: Publish release
     needs: console
-    if: github.event_name == 'workflow_dispatch' && inputs.version != '' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'workflow_dispatch' && inputs.version != '' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
