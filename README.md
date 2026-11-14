@@ -20,6 +20,15 @@ programming course, and it shows: every class is documented with
 preconditions, postconditions and invariants, and the stack is a hand-written
 linked list.
 
+<!-- SCREENSHOTS:START -->
+## Screenshots
+
+![KlondikeCLI — recorded-output](site/assets/screenshots/game.png)
+
+Recorded output of an actual KlondikeCLI game: seed 42, draw one, one move. The image renders the recorded transcript; it is not a desktop terminal screenshot.
+
+<!-- SCREENSHOTS:END -->
+
 ## ✨ Features
 
 - Classic Klondike rules: build the tableau down in alternating colours and
