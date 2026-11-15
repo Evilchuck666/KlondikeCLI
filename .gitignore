@@ -1,8 +1,10 @@
-# CMake build directories
+# CMake build trees: build/ is the Release build (README, CI and VS Code tasks),
+# cmake-build-debug/ is the Debug build used by the VS Code debugger and clangd.
 build/
 cmake-build-*/
+
+# Install staging used by the release workflow (cmake --install --prefix dist/...)
 dist/
 
-# IDEs
+# CLion
 .idea/
-.vscode/

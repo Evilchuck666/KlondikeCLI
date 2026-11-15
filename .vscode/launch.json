@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // CodeLLDB. The game reads the seed and the moves from stdin, so it runs in the integrated terminal.
+      "name": "Debug KlondikeCLI",
+      "type": "lldb",
+      "request": "launch",
+      "program": "${workspaceFolder}/cmake-build-debug/KlondikeCLI",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "terminal": "integrated",
+      "preLaunchTask": "build (Debug)"
+    }
+  ]
+}

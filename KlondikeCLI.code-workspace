@@ -1,118 +1,32 @@
 {
+  // Workspace-level configuration: folders, settings and extension recommendations.
+  // Building and debugging the folder live in .vscode/tasks.json and .vscode/launch.json, never here.
   "folders": [
     {
       "name": "KlondikeCLI",
       "path": "."
     }
   ],
-  // Two build trees: build/ is the Release build from the README and CI, cmake-build-debug/ is the Debug build used by
-  // the debugger and IntelliSense. Both are ignored by .gitignore (build/ and cmake-build-*/).
   "settings": {
-    "C_Cpp.default.compileCommands": "${workspaceFolder}/cmake-build-debug/compile_commands.json",
-    "C_Cpp.default.cppStandard": "c++17",
-    "files.associations": {
-      "*.h": "cpp"
+    // Same style as the files in the repository: LF, final newline, no trailing whitespace.
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    // The C++ sources are indented with 4 spaces, no tabs.
+    "[cpp]": {
+      "editor.insertSpaces": true,
+      "editor.tabSize": 4
     },
-    "search.exclude": {
-      "build": true,
-      "cmake-build-*": true,
-      "dist": true
-    },
-    "files.watcherExclude": {
-      "**/build/**": true,
-      "**/cmake-build-*/**": true,
-      "**/dist/**": true
-    }
+    // clangd reads compile_commands.json from the Debug build tree written by the "configure (Debug)" task.
+    "clangd.arguments": ["--compile-commands-dir=${workspaceFolder}/cmake-build-debug"],
+    // If the Microsoft C/C++ extension is also installed, clangd stays the only IntelliSense engine.
+    "C_Cpp.intelliSenseEngine": "disabled"
   },
   "extensions": {
     "recommendations": [
-      "ms-vscode.cpptools",
+      "llvm-vs-code-extensions.vscode-clangd",
+      "vadimcn.vscode-lldb",
       "github.vscode-github-actions"
-    ]
-  },
-  "launch": {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        // The game reads from stdin: it runs in the integrated terminal, where you type the seed and moves.
-        "name": "KlondikeCLI: debug",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "${workspaceFolder:KlondikeCLI}/cmake-build-debug/KlondikeCLI",
-        "args": [],
-        "cwd": "${workspaceFolder:KlondikeCLI}",
-        "MIMode": "gdb",
-        "externalConsole": false,
-        "setupCommands": [
-          {
-            "description": "Enable pretty-printing for gdb",
-            "text": "-enable-pretty-printing",
-            "ignoreFailures": true
-          }
-        ],
-        "preLaunchTask": "KlondikeCLI: build (Debug)"
-      }
-    ]
-  },
-  "tasks": {
-    "version": "2.0.0",
-    "tasks": [
-      {
-        // Also writes compile_commands.json for IntelliSense.
-        "label": "KlondikeCLI: configure (Debug)",
-        "type": "process",
-        "command": "cmake",
-        "args": ["-S", ".", "-B", "cmake-build-debug", "-DCMAKE_BUILD_TYPE=Debug", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"],
-        "options": {
-          "cwd": "${workspaceFolder:KlondikeCLI}"
-        },
-        "problemMatcher": []
-      },
-      {
-        "label": "KlondikeCLI: build (Debug)",
-        "type": "process",
-        "command": "cmake",
-        "args": ["--build", "cmake-build-debug"],
-        "options": {
-          "cwd": "${workspaceFolder:KlondikeCLI}"
-        },
-        "dependsOn": "KlondikeCLI: configure (Debug)",
-        "group": {
-          "kind": "build",
-          "isDefault": true
-        },
-        "problemMatcher": "$gcc"
-      },
-      {
-        // Same commands as the README and the CI build.
-        "label": "KlondikeCLI: build (Release)",
-        "type": "shell",
-        "command": "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release",
-        "options": {
-          "cwd": "${workspaceFolder:KlondikeCLI}"
-        },
-        "group": "build",
-        "problemMatcher": "$gcc"
-      },
-      {
-        // Same scripted game as the CI smoke test: seed 42, one card at a time, open two cards, show the menu and quit.
-        "label": "KlondikeCLI: smoke test",
-        "type": "shell",
-        "command": "output=$(printf '42\\n1\\n1\\n1\\n9\\n0\\n' | ./build/KlondikeCLI) && echo \"$output\" && grep -q 'ABANDONED GAME' <<< \"$output\" && echo 'Smoke test OK'",
-        "options": {
-          "cwd": "${workspaceFolder:KlondikeCLI}",
-          "shell": {
-            "executable": "bash",
-            "args": ["-c"]
-          }
-        },
-        "dependsOn": "KlondikeCLI: build (Release)",
-        "group": {
-          "kind": "test",
-          "isDefault": true
-        },
-        "problemMatcher": []
-      }
     ]
   }
 }
