@@ -38,7 +38,8 @@ short scripted game as a smoke test before it is packaged.
 - **Actions → Build console app → Run workflow** with an empty version only
   builds the four packages and uploads them as workflow artifacts.
 - The same with a version such as `1.0.0` also creates the `v1.0.0` tag and a
-  GitHub release with the four packages and a `SHA256SUMS.txt` file. The
+  GitHub release with the four packages and a `SHA256SUMS.txt` file, then
+  updates the AUR package (see [Arch Linux package](#arch-linux-package)). The
   version must match `project(KlondikeCLI VERSION …)` in `CMakeLists.txt`,
   and releases are only published from `main`.
 - Pushes and pull requests build automatically only when the repository
@@ -71,19 +72,32 @@ curl -fsSL https://evilchuck666.github.io/KlondikeCLI/install.sh | KLONDIKECLI_I
 ### Arch Linux package
 
 `packaging/arch/` holds the `klondikecli-bin` PKGBUILD, which repackages the
-GNU/Linux release binary together with a desktop entry and an icon. After
-each release:
+GNU/Linux release binary together with a desktop entry and an icon. The
+[AUR package](https://aur.archlinux.org/packages/klondikecli-bin) is
+published by `.github/workflows/aur.yaml`, which `release.yaml` runs after
+every release. In an Arch Linux container it:
 
-1. Set `pkgver` to the new version and `pkgrel` back to `1`.
-2. Run `updpkgsums` (from `pacman-contrib`) and
-   `makepkg --printsrcinfo > .SRCINFO`.
-3. Test it with `makepkg -f` and `namcap`.
-4. Commit the changes here, and push `PKGBUILD`, `.SRCINFO`,
-   `klondikecli.desktop` and `klondikecli.svg` to the AUR repository
-   (`ssh://aur@aur.archlinux.org/klondikecli-bin.git`).
+1. Sets `pkgver` to the released version (and `pkgrel` back to `1`), runs
+   `updpkgsums` and `makepkg --printsrcinfo`, and checks the tarball
+   checksum against the release's `SHA256SUMS.txt`.
+2. Builds the package, runs the same smoke test as the release builds, and
+   runs `namcap`.
+3. Commits the updated `PKGBUILD` and `.SRCINFO` to `main`.
+4. Pushes `PKGBUILD`, `.SRCINFO`, `klondikecli.desktop` and
+   `klondikecli.svg` to `ssh://aur@aur.archlinux.org/klondikecli-bin.git`.
 
-Until the package is on the AUR, `install.sh` always takes the `makepkg`
-path, so `packaging/arch/` on `main` must always build.
+To publish a release by hand (to retry a failed push, or after committing a
+`pkgrel` bump for a packaging-only fix), use **Actions → Publish AUR package
+→ Run workflow** with the released version. If the AUR already has the same
+files, nothing is pushed.
+
+The push needs the repository secret `AUR_SSH_PRIVATE_KEY`: a private SSH key
+used only by CI, whose public key is added under **My Account → SSH Public
+Key** in the AUR account that maintains the package (that field takes one
+key per line).
+
+If the package is not on the AUR, `install.sh` builds the PKGBUILD from
+`main`, so `packaging/arch/` on `main` must always build.
 
 ## Project layout
 

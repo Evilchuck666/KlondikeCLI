@@ -1,0 +1,156 @@
+name: Publish AUR package
+
+# Updates packaging/arch/PKGBUILD for a published GitHub release, commits it
+# to main and pushes it to the klondikecli-bin AUR repository.
+#
+# release.yaml calls this workflow after every release it publishes. "Run
+# workflow" publishes an existing release by hand, e.g. to retry a failed push
+# or to ship a pkgrel bump committed to packaging/arch.
+#
+# Needs the repository secret AUR_SSH_PRIVATE_KEY: a private SSH key whose
+# public half is registered in the AUR account that maintains klondikecli-bin.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      AUR_SSH_PRIVATE_KEY:
+        required: false
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Released version to publish to the AUR, without the v (e.g. 1.1.1).'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  aur:
+    name: Update klondikecli-bin
+    runs-on: ubuntu-24.04
+    # makepkg, updpkgsums and namcap need Arch Linux.
+    container: archlinux:base-devel
+    timeout-minutes: 15
+    concurrency:
+      group: klondikecli-aur
+      cancel-in-progress: false
+    env:
+      VERSION: ${{ inputs.version }}
+      AUR_PACKAGE: klondikecli-bin
+      PKG_DIR: packaging/arch
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Validate version
+        run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Use a version like 1.1.1, without the v."
+            exit 1
+          fi
+
+      - name: Install tools
+        run: pacman -Syu --noconfirm --needed git openssh pacman-contrib namcap
+
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          # Pushes the updated PKGBUILD back to main.
+          persist-credentials: true
+
+      # makepkg refuses to run as root, so the package is built by "builder".
+      - name: Update and test the PKGBUILD
+        run: |
+          set -euo pipefail
+          useradd --create-home builder
+          build=/tmp/aur-build
+          install -d -o builder "$build"
+          cp "$PKG_DIR"/{PKGBUILD,klondikecli.desktop,klondikecli.svg} "$build"/
+          chown builder "$build"/*
+
+          current=$(sed -nE 's/^pkgver=//p' "$build/PKGBUILD")
+          if [[ "$current" != "$VERSION" ]]; then
+            sed -i -E "s/^pkgver=.*/pkgver=$VERSION/; s/^pkgrel=.*/pkgrel=1/" "$build/PKGBUILD"
+          fi
+
+          # updpkgsums downloads the release tarball, so it also fails if the
+          # release does not exist.
+          runuser -u builder -- bash -c "cd '$build' && updpkgsums && makepkg --printsrcinfo > .SRCINFO && makepkg --force --nodeps"
+
+          expected=$(curl -fsSL "https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/SHA256SUMS.txt" |
+            awk '$2 == "KlondikeCLI-linux-x64.tar.gz" { print $1 }')
+          if [[ -z "$expected" ]] || ! grep -q "'$expected'" "$build/PKGBUILD"; then
+            echo "::error::The PKGBUILD checksum does not match SHA256SUMS.txt of v$VERSION."
+            exit 1
+          fi
+
+          # Same smoke test as the release builds: seed 42, open a card, quit.
+          pkg=$(ls "$build"/*.pkg.tar.zst)
+          bsdtar -xOf "$pkg" usr/bin/KlondikeCLI > /tmp/KlondikeCLI
+          chmod +x /tmp/KlondikeCLI
+          printf '42\n1\n1\n9\n0\n' | /tmp/KlondikeCLI | grep -q "ABANDONED GAME"
+          namcap "$build/PKGBUILD" "$pkg"
+
+          cp "$build/PKGBUILD" "$build/.SRCINFO" "$PKG_DIR"/
+          git diff --stat
+
+      - name: Commit the PKGBUILD to main
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- "$PKG_DIR"; then
+            echo "$PKG_DIR is already up to date."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$PKG_DIR/PKGBUILD" "$PKG_DIR/.SRCINFO"
+          git commit -m "Update $AUR_PACKAGE PKGBUILD to $VERSION"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            git pull --rebase origin main
+          done
+          echo "::error::Could not push the PKGBUILD update to main."
+          exit 1
+
+      - name: Push to the AUR
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$AUR_SSH_PRIVATE_KEY" ]]; then
+            echo "::error::Set the AUR_SSH_PRIVATE_KEY repository secret (see TECHNICAL_GUIDE.md)."
+            exit 1
+          fi
+
+          ssh_dir=$(mktemp -d)
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > "$ssh_dir/key"
+          chmod 600 "$ssh_dir/key"
+          # Host key fingerprint published on https://aur.archlinux.org:
+          # SHA256:RFzBCUItH9LZS0cKB5UE6ceAYhBD5C8GeOBip8Z11+4
+          echo 'aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN' > "$ssh_dir/known_hosts"
+          export GIT_SSH_COMMAND="ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o StrictHostKeyChecking=yes"
+
+          # Cloning a package that is not on the AUR yet gives an empty
+          # repository; the first push creates the package.
+          git clone "ssh://aur@aur.archlinux.org/$AUR_PACKAGE.git" /tmp/aur-repo
+          cp "$PKG_DIR"/{PKGBUILD,.SRCINFO,klondikecli.desktop,klondikecli.svg} /tmp/aur-repo/
+          cd /tmp/aur-repo
+          git add PKGBUILD .SRCINFO klondikecli.desktop klondikecli.svg
+          if git diff --cached --quiet; then
+            echo "The AUR already has this PKGBUILD."
+            exit 0
+          fi
+          pkgrel=$(sed -nE 's/^pkgrel=//p' PKGBUILD)
+          git -c user.name='EvilChuck' -c user.email='32517177+Evilchuck666@users.noreply.github.com' \
+            commit -m "Update to $VERSION-$pkgrel"
+          git push origin HEAD:master

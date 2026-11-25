@@ -5,7 +5,8 @@ name: Build console app
 # Actions → Variables). Only change detection and the final status run
 # when no application work is needed. "Run workflow" always works: leave the version empty to just build,
 # or give one (e.g. 1.0.0, matching project() in CMakeLists.txt) to also
-# publish a GitHub release with the four packages.
+# publish a GitHub release with the four packages and update the
+# klondikecli-bin AUR package (see aur.yaml).
 
 on:
   push:
@@ -274,10 +275,21 @@ jobs:
             --generate-notes \
             --latest
 
+  aur:
+    name: Publish AUR package
+    needs: release
+    uses: ./.github/workflows/aur.yaml
+    permissions:
+      contents: write
+    with:
+      version: ${{ inputs.version }}
+    secrets:
+      AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+
   result:
     name: CI result
     if: always()
-    needs: [changes, console, release]
+    needs: [changes, console, release, aur]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
