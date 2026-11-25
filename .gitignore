@@ -8,3 +8,9 @@ dist/
 
 # CLion
 .idea/
+
+# makepkg output when testing packaging/arch/PKGBUILD in place
+packaging/arch/src/
+packaging/arch/pkg/
+packaging/arch/*.tar.gz
+packaging/arch/*.pkg.tar.*

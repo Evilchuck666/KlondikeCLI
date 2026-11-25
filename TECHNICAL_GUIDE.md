@@ -44,6 +44,47 @@ short scripted game as a smoke test before it is packaged.
 - Pushes and pull requests build automatically only when the repository
   variable `KLONDIKECLI_CI` is set to `true`.
 
+## Install scripts and packaging
+
+`install.sh` (GNU/Linux and macOS) and `install.ps1` (Windows) live at the
+repository root. The Pages workflow (`.github/workflows/pages.yaml`) checks
+them with `bash -n`, ShellCheck and the PowerShell parser, then publishes them
+next to the website, which is where the one-line commands in the README
+download them from. Both install the latest GitHub release and verify it
+against `SHA256SUMS.txt`.
+
+| System | What the installer does |
+| --- | --- |
+| Arch Linux and derivatives | Installs `klondikecli-bin` with the first AUR helper found (`paru`, `yay`, `pikaur`, `trizen`) if the package is on the AUR. Otherwise it downloads `packaging/arch/` from `main` and runs `makepkg --syncdeps --install`, installing `base-devel` first if `fakeroot` is missing. |
+| Other GNU/Linux distributions | Installs the binary in `~/.local/bin`, the icon in `$XDG_DATA_HOME/icons` and a `.desktop` entry in `$XDG_DATA_HOME/applications`. |
+| macOS | Installs the Intel or Apple Silicon binary in `~/.local/bin` and builds `~/Applications/KlondikeCLI.app` with `osacompile`. |
+| Windows | Installs to `%LOCALAPPDATA%\Programs\KlondikeCLI`, adds it to the user PATH and creates Start menu and desktop shortcuts. |
+
+`KLONDIKECLI_INSTALL_METHOD` overrides how `install.sh` installs:
+`tarball` installs the release binary even on Arch Linux, `arch` forces the
+package path and `auto` (the default) chooses based on the system.
+
+```sh
+curl -fsSL https://evilchuck666.github.io/KlondikeCLI/install.sh | KLONDIKECLI_INSTALL_METHOD=tarball bash
+```
+
+### Arch Linux package
+
+`packaging/arch/` holds the `klondikecli-bin` PKGBUILD, which repackages the
+GNU/Linux release binary together with a desktop entry and an icon. After
+each release:
+
+1. Set `pkgver` to the new version and `pkgrel` back to `1`.
+2. Run `updpkgsums` (from `pacman-contrib`) and
+   `makepkg --printsrcinfo > .SRCINFO`.
+3. Test it with `makepkg -f` and `namcap`.
+4. Commit the changes here, and push `PKGBUILD`, `.SRCINFO`,
+   `klondikecli.desktop` and `klondikecli.svg` to the AUR repository
+   (`ssh://aur@aur.archlinux.org/klondikecli-bin.git`).
+
+Until the package is on the AUR, `install.sh` always takes the `makepkg`
+path, so `packaging/arch/` on `main` must always build.
+
 ## Project layout
 
 | File | Purpose |
@@ -54,3 +95,5 @@ short scripted game as a smoke test before it is packaged.
 | `Deck.h` / `Deck.cpp` | The 52-card deck, shuffled with a seeded Fisher–Yates (Sattolo variant). |
 | `Card.h` / `Card.cpp` | A card: suit, rank, colour and whether it is face up. |
 | `Stack.h` / `Stack.cpp` | A linked-list stack of cards, used for the stock, waste and foundations. |
+| `install.sh` / `install.ps1` | One-line installers for GNU/Linux and macOS, and for Windows. |
+| `packaging/arch/` | The `klondikecli-bin` PKGBUILD for the AUR, with its desktop entry and icon. |

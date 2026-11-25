@@ -29,7 +29,16 @@
 <section id="overview" class="features" aria-label="What you can do"><article><span class="feature-number">01</span><h3>A familiar game</h3><p>Build the tableau in alternating colours and the foundations from Ace to King.</p></article>
 <article><span class="feature-number">02</span><h3>A repeatable deal</h3><p>Enter a positive seed to replay the same opening. Draw one card or three.</p></article>
 <article><span class="feature-number">03</span><h3>No extra dependencies</h3><p>Play on Linux, Windows or macOS, with moves, scoring and rule validation built in.</p></article></section>
-<section id="start" class="start" aria-labelledby="start-title"><div><p class="eyebrow">Get started</p><h2 id="start-title">Deal your first game</h2><p>Download and extract the package for your system. Run KlondikeCLI from a terminal, enter a seed and choose the draw mode. The README explains the board, card notation and controls.</p>
+<section id="start" class="start" aria-labelledby="start-title"><div><p class="eyebrow">Get started</p><h2 id="start-title">Deal your first game</h2><p>Install KlondikeCLI with one command, or download the package for your system yourself. Then open it from its shortcut or a terminal, enter a seed and choose the draw mode. The README explains the board, card notation and controls.</p>
+<div class="install"><h3>Quick install</h3>
+<p class="install-label">GNU/Linux &amp; macOS</p>
+<pre><code>curl -fsSL https://evilchuck666.github.io/KlondikeCLI/install.sh | bash
+# or
+wget -qO- https://evilchuck666.github.io/KlondikeCLI/install.sh | bash</code></pre>
+<p class="install-label">Windows (PowerShell)</p>
+<pre><code>irm https://evilchuck666.github.io/KlondikeCLI/install.ps1 | iex</code></pre>
+<p class="install-note">Arch Linux and derivatives get the <code>klondikecli-bin</code> package; other systems get the release binary. Either way you end up with a shortcut to KlondikeCLI, and the download is checked against its SHA-256 checksum. Read <a href="install.sh">install.sh</a> or <a href="install.ps1">install.ps1</a> first if you like.</p></div>
+<h3 class="manual-title">Or download it yourself</h3>
 <ul class="downloads" aria-label="Download KlondikeCLI for your system">
 <li><a class="button secondary" href="https://github.com/Evilchuck666/KlondikeCLI/releases/latest/download/KlondikeCLI-linux-x64.tar.gz"><span class="download-label"><svg class="os-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 9C6 11 5 14 5 17c0 3 3 4 7 4s7-1 7-4c0-3-1-6-3-8V6a4 4 0 0 0-8 0z" fill="currentColor"/><ellipse cx="12" cy="15" rx="4" ry="5" fill="var(--bg)"/><ellipse cx="10.5" cy="6.5" rx="1" ry="1.5" fill="var(--bg)"/><ellipse cx="13.5" cy="6.5" rx="1" ry="1.5" fill="var(--bg)"/><path d="m9 9 3-2 3 2-3 2zM3 20l4-2 3 4H3zm18 0-4-2-3 4h7z" fill="currentColor"/></svg><span>Linux x64<small>.tar.gz</small></span></span><span aria-hidden="true">↓</span></a></li>
 <li><a class="button secondary" href="https://github.com/Evilchuck666/KlondikeCLI/releases/latest/download/KlondikeCLI-windows-x64.zip"><span class="download-label"><svg class="os-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="m2 5 9-1.3v7.5H2zm10-1.5L22 2v9.2H12zM2 12.5h9V20l-9-1.3zm10 0h10V22l-10-1.5z"/></svg><span>Windows x64<small>.zip</small></span></span><span aria-hidden="true">↓</span></a></li>

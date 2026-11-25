@@ -43,6 +43,41 @@ Recorded output of an actual KlondikeCLI game: seed 42, draw one, one move. The 
 
 ## 📥 Download
 
+### Quick install
+
+On **GNU/Linux** or **macOS**, run one of these in a terminal:
+
+```sh
+curl -fsSL https://evilchuck666.github.io/KlondikeCLI/install.sh | bash
+```
+
+```sh
+wget -qO- https://evilchuck666.github.io/KlondikeCLI/install.sh | bash
+```
+
+On **Windows**, run this in PowerShell:
+
+```powershell
+irm https://evilchuck666.github.io/KlondikeCLI/install.ps1 | iex
+```
+
+The installer picks the right package for your system and leaves a shortcut
+to KlondikeCLI:
+
+| System | What the installer does |
+| --- | --- |
+| Arch Linux and derivatives | Installs the `klondikecli-bin` package: with your AUR helper (paru, yay…) when the package is on the AUR, otherwise by building its PKGBUILD with `makepkg`. KlondikeCLI appears in the applications menu. |
+| Other GNU/Linux distributions | Installs the binary in `~/.local/bin` and adds KlondikeCLI to the applications menu. |
+| macOS (Intel or Apple Silicon) | Installs the binary in `~/.local/bin` and creates `~/Applications/KlondikeCLI.app`, which opens the game in Terminal. |
+| Windows | Installs `KlondikeCLI.exe` in `%LOCALAPPDATA%\Programs\KlondikeCLI`, adds it to your PATH and creates Start menu and desktop shortcuts. |
+
+Downloads are checked against `SHA256SUMS.txt`, and no administrator rights
+are needed (on Arch, `pacman` asks for `sudo` to install the package). You can
+read [install.sh](install.sh) and [install.ps1](install.ps1) before running
+them.
+
+### Manual download
+
 | Platform | Latest stable release |
 | --- | --- |
 | GNU/Linux x64 | [Download](https://github.com/Evilchuck666/KlondikeCLI/releases/latest/download/KlondikeCLI-linux-x64.tar.gz) |
@@ -57,9 +92,11 @@ On macOS the binary is not signed. If Gatekeeper blocks it, run
 
 ## 🚀 Getting started
 
-1. Download the package for your system from the table above.
-2. Extract it and run `KlondikeCLI` (`KlondikeCLI.exe` on Windows) from a
-   terminal.
+1. Install KlondikeCLI with the [quick installer](#quick-install), or
+   download the package for your system from the
+   [table above](#manual-download) and extract it.
+2. Open KlondikeCLI from the shortcut the installer created, or run
+   `KlondikeCLI` (`KlondikeCLI.exe` on Windows) from a terminal.
 3. Type a seed (any positive integer) and choose whether to draw cards one by
    one or three by three.
 
@@ -132,7 +169,7 @@ cmake --build build --config Release
 ```
 
 - [Technical guide](TECHNICAL_GUIDE.md): scoring, building from source,
-  releases and project layout.
+  releases, install scripts and packaging, and project layout.
 
 ## ⚖️ License
 
